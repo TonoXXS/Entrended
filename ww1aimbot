@@ -1,0 +1,192 @@
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local Window = OrionLib:MakeWindow({Name = "ggxz11z", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest",IntroText = "ggxz11z"})
+ 
+
+local Tab = Window:MakeTab({
+    Name = "Main",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+
+local runservice = game:GetService("RunService")
+local players = game:GetService("Players")
+local localplayer = players.LocalPlayer
+local mouse = localplayer:GetMouse()
+local uis = game:GetService("UserInputService")
+local camera = workspace.CurrentCamera
+
+local settings = {
+    Aimbot = true,
+    Aiming = false,
+    AimPart = "Head",
+    TeamCheck = false,
+    DrawFov = true,
+    Fov_radius = 100,
+    Fov_color = Color3.new(255,255,255)
+}
+
+Tab:AddSlider({
+	Name = "Slider",
+	Min = 0,
+	Max = 200,
+	Default = 100,
+	Color = Color3.fromRGB(255,255,255),
+	Increment = 1,
+	ValueName = "Fov radius",
+	Callback = function(Value)
+		settings.Fov_radius = Value
+	end    
+})
+
+
+Tab:AddColorpicker({
+	Name = "Fov color",
+	Default = Color3.fromRGB(255, 0, 0),
+	Callback = function(Value)
+		local color = Value
+        settings.Fov_color = color
+	end	  
+})
+
+Tab:AddButton({
+	Name = "show fov",
+	Callback = function()
+        local fovcircle = Drawing.new("Circle")
+        fovcircle.Visible = settings.DrawFov
+        fovcircle.Thickness = 1
+        fovcircle.Filled = false
+        fovcircle.Transparency = 1
+        fovcircle.Position = Vector2.new(camera.ViewportSize.X / 2,camera.ViewportSize.Y / 2)
+        while  Wait() do
+            fovcircle.Radius = settings.Fov_radius
+            fovcircle.Color = settings.Fov_color
+        end   
+end 
+})
+
+Tab:AddButton({
+    Name = "Aimbot",
+    Callback = function()
+
+        OrionLib:MakeNotification({
+            Name = "Fuck u",
+            Content = "Aimbot on",
+            Image = "rbxassetid://4483345998",
+            Time = 3
+        })
+
+
+        uis.InputBegan:Connect(function(ip)
+            if ip.UserInputType ==  Enum.UserInputType.MouseButton2 then
+             settings.Aiming = true
+            end
+         end)
+         
+         uis.InputEnded:Connect(function(ip)
+             if ip.UserInputType == Enum.UserInputType.MouseButton2 then
+                 settings.Aiming = false
+             end
+         end)
+         
+         runservice.RenderStepped:Connect(function()
+             local dist = math.huge
+             local closestchar = nil
+         
+             if settings.Aiming then
+                 for i, v in next, players:GetChildren() do
+                     
+                     if v ~= localplayer and v.Character:FindFirstChild("HumanoidRootPart") then
+                        if settings.Aimbot == true and v.Team ~= localplayer.Team and v.Character:FindFirstChild("Humanoid").Health > 0 then
+                             local char = v.Character
+                             local char_part_pos, is_onscreen = camera:WorldToViewportPoint(char[settings.AimPart].Position)
+                             
+                             if is_onscreen then
+                                 local magnitude = (Vector2.new(mouse.X, mouse.Y) - Vector2.new(char_part_pos.X, char_part_pos.Y)).Magnitude
+                                 
+                                 if magnitude < dist and magnitude < settings.Fov_radius then
+                                     dist = magnitude
+                                     closestchar = char
+                                 end
+                             end
+                         end
+                        end 
+                     end
+
+                 if closestchar ~= nil and
+                 closestchar:FindFirstChild("HumanoidRootPart") and
+                 closestchar:FindFirstChild("Humanoid").Health > 0 then
+                     
+                     camera.CFrame = CFrame.new(camera.CFrame.Position, closestchar[settings.AimPart].Position)
+                 end
+             end
+         end)
+         
+    end
+})
+local Tab2 = Window:MakeTab({
+    Name = "Visual",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false,
+})
+
+local espcolor = {
+    color = Color3.new(255,0,0)
+
+}
+
+Tab2:AddColorpicker({
+	Name = "Esp color",
+	Default = Color3.fromRGB(255, 0, 0),
+	Callback = function(Value)
+		espcolor.color = Value
+	end	  
+})
+
+
+local esp = Instance.new("Highlight")
+Tab2:AddButton({
+    Name = "Player esp",
+    Callback = function(vl)
+
+
+        OrionLib:MakeNotification({
+            Name = "Fuck u",
+            Content = "Esp on :D",
+            Image = "rbxassetid://4483345998",
+            Time = 3
+        })
+        
+
+                game.Players.PlayerAdded:Connect(function(player)
+                    local esp_clone = esp:Clone()
+                    esp_clone.Parent = player.Character
+                
+                    esp_clone.Name = "esp"
+                    while Wait() do
+                        esp_clone.FillColor = espcolor.color
+                    end
+                end)
+        
+                game.Players.PlayerRemoving:Connect(function(playernew)
+                    playernew.Character:FindFirstChild("esp"):Destroy()
+                end)
+        
+                runservice.RenderStepped:Connect(function()
+                    for i, v in pairs(game.Players:GetChildren()) do
+                        if v ~= pl and v.Team ~= localplayer.Team then
+                                if not v.Character:FindFirstChild("esp") then
+                                    local esp_clone = esp:Clone()
+                                    esp_clone.Parent = v.Character
+                                    esp_clone.Name = "esp"
+                                    while Wait() do
+                                        esp_clone.FillColor = espcolor.color
+                                    end
+                            end 
+                        elseif v ~= pl and v.Team == localplayer.Team and v.Character:FindFirstChild("esp") then
+                            v.Character:FindFirstChild("esp"):Destroy()
+                        end     
+                    end
+                end)
+            end
+})
